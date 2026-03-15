@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YouMeWe — Find your group's chat app</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    h1 { text-align: center; font-size: 2rem; font-weight: 800; color: #f8fafc; margin-bottom: 0.25rem; }
+    .tagline { text-align: center; color: #94a3b8; margin-bottom: 2rem; }
+
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 1.5rem;
+      max-width: 680px;
+      margin: 0 auto 1.5rem;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin-bottom: 1rem;
+    }
+
+    /* ── session setup ── */
+    .input-row { display: flex; gap: 0.75rem; }
+    input[type=text] {
+      flex: 1;
+      padding: 0.5rem 0.875rem;
+      background: #0f172a;
+      border: 1.5px solid #475569;
+      border-radius: 8px;
+      color: #f1f5f9;
+      font-size: 0.9rem;
+    }
+    input[type=text]:focus { outline: none; border-color: #6366f1; }
+
+    button.primary {
+      padding: 0.5rem 1.25rem;
+      background: #6366f1;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button.primary:hover { background: #4f46e5; }
+    button.primary:disabled { background: #475569; cursor: not-allowed; }
+
+    button.secondary {
+      padding: 0.5rem 1rem;
+      background: transparent;
+      border: 1.5px solid #475569;
+      border-radius: 8px;
+      color: #94a3b8;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    button.secondary:hover { border-color: #94a3b8; color: #e2e8f0; }
+
+    /* ── participant list ── */
+    .participant-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #334155;
+    }
+    .participant-row:last-child { border-bottom: none; }
+    .participant-name { flex: 1; font-size: 0.9rem; }
+    .participant-row.active .participant-name { color: #a5b4fc; font-weight: 600; }
+
+    /* ── feature weights ── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.5rem 1rem;
+      align-items: center;
+    }
+    .feature-label { font-size: 0.875rem; color: #cbd5e1; }
+    .weight-group { display: flex; gap: 3px; }
+    .weight-group button {
+      width: 30px;
+      height: 30px;
+      border: 1.5px solid #475569;
+      border-radius: 6px;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .weight-group button.on { background: #6366f1; border-color: #6366f1; color: #fff; }
+
+    /* ── results ── */
+    .result-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.875rem 1rem;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      margin-bottom: 0.625rem;
+    }
+    .medal { font-size: 1.4rem; width: 2rem; text-align: center; }
+    .result-info { flex: 1; }
+    .result-name { font-weight: 700; color: #f1f5f9; font-size: 0.95rem; }
+    .result-name a { color: inherit; text-decoration: none; }
+    .result-desc { font-size: 0.775rem; color: #94a3b8; margin-top: 0.15rem; }
+    .bar-wrap { width: 100%; height: 4px; background: #334155; border-radius: 2px; margin-top: 0.4rem; }
+    .bar { height: 4px; background: #6366f1; border-radius: 2px; }
+    .score-box { text-align: right; min-width: 3rem; }
+    .score-num { font-size: 1.2rem; font-weight: 700; color: #a5b4fc; }
+    .score-lbl { font-size: 0.65rem; color: #64748b; }
+
+    .section-title {
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin: 1.5rem 0 1rem;
+    }
+    .note { color: #94a3b8; font-size: 0.8rem; text-align: center; margin-bottom: 0.5rem; }
+    .error { color: #f87171; text-align: center; margin: 0.5rem 0; font-size: 0.875rem; }
+    .btn-row { display: flex; gap: 0.75rem; justify-content: center; margin-top: 1rem; }
+
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <h1>YouMeWe</h1>
+  <p class="tagline">Find the chat app that works for your whole group</p>
+
+  <!-- Step 1: Create session -->
+  <div class="card" id="step-session">
+    <p class="card-title">1. Name your group session</p>
+    <div class="input-row">
+      <input type="text" id="session-name" placeholder="e.g. Weekend crew" />
+      <button class="primary" id="create-session-btn">Start</button>
+    </div>
+    <p class="error" id="session-error" hidden></p>
+  </div>
+
+  <!-- Step 2: Add participants -->
+  <div class="card" id="step-participants" hidden>
+    <p class="card-title">2. Add participants</p>
+    <div class="input-row">
+      <input type="text" id="participant-name" placeholder="Name" />
+      <button class="primary" id="add-participant-btn">Add</button>
+    </div>
+    <div id="participant-list" style="margin-top:1rem"></div>
+    <p class="error" id="participant-error" hidden></p>
+    <div class="btn-row">
+      <button class="secondary" id="skip-prefs-btn">Skip preferences → see results</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Set preferences for selected participant -->
+  <div class="card" id="step-prefs" hidden>
+    <p class="card-title" id="prefs-title">3. Set preferences</p>
+    <p class="note">Rate how important each feature is (0 = don't care, 5 = must have)</p>
+    <div class="feature-grid" id="feature-grid" style="margin-top:0.75rem"></div>
+    <p class="error" id="prefs-error" hidden></p>
+    <div class="btn-row">
+      <button class="secondary" id="save-prefs-btn">Save &amp; continue</button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="step-results" hidden>
+    <p class="section-title">Recommendations</p>
+    <div id="results" style="max-width:680px;margin:0 auto"></div>
+    <div class="btn-row" style="margin-top:1rem">
+      <button class="secondary" id="refresh-btn">Refresh results</button>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    // ── state ─────────────────────────────────────────────────────────────
+    let sessionId = null;
+    let allFeatures = [];
+    let participants = [];
+    let activeParticipantId = null;
+    let pendingWeights = {};   // featureId -> weight (for current editor)
+
+    // ── helpers ───────────────────────────────────────────────────────────
+
+    function show(id) { document.getElementById(id).hidden = false; }
+    function hide(id) { document.getElementById(id).hidden = true; }
+    function err(id, msg) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.hidden = false;
+    }
+    function clearErr(id) { document.getElementById(id).hidden = true; }
+
+    async function apiFetch(path, opts) {
+      const res = await fetch(path, opts);
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
+      return body;
+    }
+
+    // ── step 1: create session ────────────────────────────────────────────
+
+    document.getElementById('create-session-btn').addEventListener('click', async () => {
+      clearErr('session-error');
+      const name = document.getElementById('session-name').value.trim();
+      if (!name) { err('session-error', 'Please enter a session name.'); return; }
+      try {
+        const session = await apiFetch('/sessions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name }),
+        });
+        sessionId = session.id;
+
+        allFeatures = await apiFetch('/features');
+
+        hide('step-session');
+        show('step-participants');
+      } catch (e) {
+        err('session-error', e.message);
+      }
+    });
+
+    // ── step 2: add participants ──────────────────────────────────────────
+
+    document.getElementById('add-participant-btn').addEventListener('click', addParticipant);
+    document.getElementById('participant-name').addEventListener('keydown', e => {
+      if (e.key === 'Enter') addParticipant();
+    });
+
+    async function addParticipant() {
+      clearErr('participant-error');
+      const name = document.getElementById('participant-name').value.trim();
+      if (!name) { err('participant-error', 'Enter a participant name.'); return; }
+      try {
+        const p = await apiFetch(`/sessions/${sessionId}/participants`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name }),
+        });
+        participants.push(p);
+        document.getElementById('participant-name').value = '';
+        renderParticipants();
+      } catch (e) {
+        err('participant-error', e.message);
+      }
+    }
+
+    function renderParticipants() {
+      const list = document.getElementById('participant-list');
+      list.replaceChildren();
+      for (const p of participants) {
+        const row = document.createElement('div');
+        row.className = 'participant-row' + (p.id === activeParticipantId ? ' active' : '');
+
+        const nameEl = document.createElement('span');
+        nameEl.className = 'participant-name';
+        nameEl.textContent = p.name;
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'secondary';
+        editBtn.textContent = 'Set preferences';
+        editBtn.addEventListener('click', () => openPrefsFor(p));
+
+        row.append(nameEl, editBtn);
+        list.appendChild(row);
+      }
+    }
+
+    document.getElementById('skip-prefs-btn').addEventListener('click', showResults);
+
+    // ── step 3: preferences ───────────────────────────────────────────────
+
+    function openPrefsFor(participant) {
+      activeParticipantId = participant.id;
+      pendingWeights = {};
+      document.getElementById('prefs-title').textContent =
+        `3. Preferences for ${participant.name}`;
+
+      renderFeatureGrid();
+      renderParticipants();
+      show('step-prefs');
+      document.getElementById('step-prefs').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderFeatureGrid() {
+      const grid = document.getElementById('feature-grid');
+      grid.replaceChildren();
+
+      for (const f of allFeatures) {
+        const label = document.createElement('span');
+        label.className = 'feature-label';
+        label.textContent = f.name;
+
+        const wg = document.createElement('div');
+        wg.className = 'weight-group';
+        for (let v = 0; v <= 5; v++) {
+          const btn = document.createElement('button');
+          btn.textContent = String(v);
+          const curWeight = pendingWeights[f.id] ?? 0;
+          if (curWeight === v) btn.classList.add('on');
+          btn.addEventListener('click', () => {
+            pendingWeights[f.id] = v;
+            renderFeatureGrid();
+          });
+          wg.appendChild(btn);
+        }
+
+        grid.append(label, wg);
+      }
+    }
+
+    document.getElementById('save-prefs-btn').addEventListener('click', async () => {
+      clearErr('prefs-error');
+      try {
+        for (const [featureId, weight] of Object.entries(pendingWeights)) {
+          if (weight > 0) {
+            await apiFetch(`/sessions/${sessionId}/preferences`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                participant_id: activeParticipantId,
+                feature_id: Number(featureId),
+                weight,
+              }),
+            });
+          }
+        }
+        hide('step-prefs');
+        activeParticipantId = null;
+        renderParticipants();
+      } catch (e) {
+        err('prefs-error', e.message);
+      }
+    });
+
+    // ── results ───────────────────────────────────────────────────────────
+
+    async function showResults() {
+      try {
+        const ranked = await apiFetch(`/sessions/${sessionId}/recommend`);
+        renderResults(ranked);
+        show('step-results');
+        document.getElementById('step-results').scrollIntoView({ behavior: 'smooth' });
+      } catch (e) {
+        err('participant-error', e.message);
+      }
+    }
+
+    function renderResults(ranked) {
+      const container = document.getElementById('results');
+      container.replaceChildren();
+      const medals = ['🥇', '🥈', '🥉'];
+      const maxScore = ranked[0]?.score || 1;
+
+      for (let i = 0; i < ranked.length; i++) {
+        const { app, score } = ranked[i];
+        const item = document.createElement('div');
+        item.className = 'result-item';
+
+        const medal = document.createElement('span');
+        medal.className = 'medal';
+        medal.textContent = medals[i] || String(i + 1);
+
+        const info = document.createElement('div');
+        info.className = 'result-info';
+
+        const nameLine = document.createElement('div');
+        nameLine.className = 'result-name';
+        if (app.website_url) {
+          const link = document.createElement('a');
+          link.href = app.website_url;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          link.textContent = app.name;
+          nameLine.appendChild(link);
+        } else {
+          nameLine.textContent = app.name;
+        }
+
+        const desc = document.createElement('div');
+        desc.className = 'result-desc';
+        desc.textContent = app.description || '';
+
+        const barWrap = document.createElement('div');
+        barWrap.className = 'bar-wrap';
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.style.width = `${maxScore ? (score / maxScore * 100) : 0}%`;
+        barWrap.appendChild(bar);
+
+        info.append(nameLine, desc, barWrap);
+
+        const scoreBox = document.createElement('div');
+        scoreBox.className = 'score-box';
+        const scoreNum = document.createElement('div');
+        scoreNum.className = 'score-num';
+        scoreNum.textContent = String(score);
+        const scoreLbl = document.createElement('div');
+        scoreLbl.className = 'score-lbl';
+        scoreLbl.textContent = 'score';
+        scoreBox.append(scoreNum, scoreLbl);
+
+        item.append(medal, info, scoreBox);
+        container.appendChild(item);
+      }
+    }
+
+    document.getElementById('refresh-btn').addEventListener('click', showResults);
+  })();
+  </script>
+</body>
+</html>
