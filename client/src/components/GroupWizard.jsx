@@ -53,8 +53,13 @@ export default function GroupWizard({ onComplete }) {
 
   if (step === 'session') {
     return (
-      <div>
-        <h2>Create your group</h2>
+      <>
+        <div className="steps">
+          <div className="step-dot active" />
+          <div className="step-dot" />
+        </div>
+        <p className="section-title">Name your group</p>
+        <p className="section-sub">Give your group a name to get started.</p>
         <input
           type="text"
           placeholder="Group name"
@@ -62,33 +67,41 @@ export default function GroupWizard({ onComplete }) {
           onChange={(e) => setGroupName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleStart()}
         />
-        <button onClick={handleStart} disabled={loading}>
+        {nameError && <p role="alert" className="error-msg">{nameError}</p>}
+        <button className="btn-primary" onClick={handleStart} disabled={loading}>
           Start
         </button>
-        {nameError && <p role="alert">{nameError}</p>}
-      </div>
+      </>
     );
   }
 
   return (
-    <div>
-      <h2>Add participants</h2>
-      <input
-        type="text"
-        placeholder="Participant name"
-        value={participantName}
-        onChange={(e) => setParticipantName(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-      />
-      <button onClick={handleAdd}>Add</button>
-      {addError && <p role="alert">{addError}</p>}
-      <ul>
+    <>
+      <div className="steps">
+        <div className="step-dot" />
+        <div className="step-dot active" />
+      </div>
+      <p className="section-title">Add participants</p>
+      <p className="section-sub">Who's in the group? Add everyone, then continue.</p>
+      <div className="input-row">
+        <input
+          type="text"
+          placeholder="Participant name"
+          value={participantName}
+          onChange={(e) => setParticipantName(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+          style={{ marginBottom: 0 }}
+        />
+        <button className="btn-add" onClick={handleAdd}>Add</button>
+      </div>
+      {addError && <p role="alert" className="error-msg">{addError}</p>}
+      <ul className="participant-list">
         {participants.map((p) => (
-          <li key={p.id}>{p.name}</li>
+          <li key={p.id} className="participant-item">{p.name}</li>
         ))}
       </ul>
-      <button onClick={handleContinue}>Continue</button>
-      <button onClick={handleSkip}>Skip to results</button>
-    </div>
+      <button className="btn-primary" onClick={handleContinue}>Continue</button>
+      <button className="btn-secondary" onClick={handleSkip}>Skip to results</button>
+    </>
   );
 }

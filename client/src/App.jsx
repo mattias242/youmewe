@@ -34,17 +34,29 @@ export default function App() {
   }
 
   return (
-    <main>
-      <h1>YouMeWe</h1>
-      {view === 'wizard' && <GroupWizard onComplete={handleWizardComplete} />}
-      {view === 'prefs' && (
-        <PreferenceForm
-          features={features}
-          participant={participants[currentIndex]}
-          onSave={handlePrefsSave}
-        />
+    <main className="app-shell">
+      <h1 className="wordmark">
+        You<span className="accent">Me</span>We
+      </h1>
+      {view === 'wizard' && (
+        <div className="view" key="wizard">
+          <GroupWizard onComplete={handleWizardComplete} />
+        </div>
       )}
-      {view === 'results' && <ResultsPage sessionId={session?.id} />}
+      {view === 'prefs' && (
+        <div className="view" key={`prefs-${currentIndex}`}>
+          <PreferenceForm
+            features={features}
+            participant={participants[currentIndex]}
+            onSave={handlePrefsSave}
+          />
+        </div>
+      )}
+      {view === 'results' && (
+        <div className="view" key="results">
+          <ResultsPage sessionId={session?.id} />
+        </div>
+      )}
     </main>
   );
 }

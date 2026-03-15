@@ -15,23 +15,30 @@ export default function PreferenceForm({ features, participant, onSave }) {
   }
 
   return (
-    <div>
-      <h2>Preferences for {participant.name}</h2>
+    <>
+      <p className="pref-label">Preferences for</p>
+      <p className="pref-name">{participant.name}</p>
+
       {features.map((f) => (
-        <div key={f.id}>
-          <span>{f.name}</span>
-          {[1, 2, 3, 4, 5].map((v) => (
-            <button
-              key={v}
-              aria-pressed={weights[f.id] === v}
-              onClick={() => setWeight(f.id, weights[f.id] === v ? 0 : v)}
-            >
-              {v}
-            </button>
-          ))}
+        <div key={f.id} className="feature-block">
+          <p className="feature-label">{f.name}</p>
+          <div className="rating-track">
+            {[1, 2, 3, 4, 5].map((v) => (
+              <button
+                key={v}
+                className="rating-btn"
+                aria-pressed={weights[f.id] === v}
+                onClick={() => setWeight(f.id, weights[f.id] === v ? 0 : v)}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
         </div>
       ))}
-      <button onClick={handleSave}>Save</button>
-    </div>
+
+      <div className="divider" />
+      <button className="btn-primary" onClick={handleSave}>Save</button>
+    </>
   );
 }
