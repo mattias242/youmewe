@@ -1,0 +1,9 @@
+.runtime/
+.claude/
+.logs/
+__pycache__/
+state.json
+node_modules/
+*.db
+*.db-shm
+*.db-wal
