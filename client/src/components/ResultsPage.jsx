@@ -1,54 +1,80 @@
-import { useState, useEffect } from 'react';
-import { getRecommendations } from '../api/api';
-
-const MEDALS = ['🥇', '🥈', '🥉'];
+import { useState, useEffect, useCallback } from 'react';
+import { getResults } from '../api/api';
 
 export default function ResultsPage({ sessionId }) {
-  const [recommendations, setRecommendations] = useState(null);
+  const [data, setData] = useState(null);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    getRecommendations(sessionId)
-      .then(setRecommendations)
+  const load = useCallback(() => {
+    setError(null);
+    getResults(sessionId)
+      .then(setData)
       .catch((e) => setError(e.message));
   }, [sessionId]);
 
+  useEffect(() => { load(); }, [load]);
+
   if (error) return <p className="status-text">{error}</p>;
-  if (!recommendations) return <p className="status-text">Loading…</p>;
+  if (!data)  return <p className="status-text">Laddar…</p>;
+
+  const { participants, results } = data;
+  const total = participants.length;
 
   return (
     <>
-      <p className="results-eyebrow">Results</p>
-      <p className="section-title">Best match for your group</p>
-      <p className="section-sub" style={{ marginBottom: 28 }}>
-        Ranked by your collective preferences.
-      </p>
+      <div className="refresh-row">
+        <p className="section-title">Resultat</p>
+        <button className="btn-refresh" onClick={load}>Uppdatera</button>
+      </div>
 
-      {recommendations.map(({ app, score }, i) => (
-        <div
-          key={app.id}
-          className={`result-card${i === 0 ? ' top-pick' : ''}`}
-        >
-          <span className="result-medal">{MEDALS[i] ?? String(i + 1)}</span>
-          <div className="result-body">
-            <p className="result-app-name">
-              {app.website_url ? (
-                <a href={app.website_url} target="_blank" rel="noopener noreferrer">
-                  {app.name}
-                </a>
-              ) : (
-                app.name
+      {total === 0 ? (
+        <p className="results-meta">Ingen har svarat än. Dela länken!</p>
+      ) : (
+        <p className="results-meta">
+          {total} {total === 1 ? 'person' : 'personer'} har svarat
+        </p>
+      )}
+
+      {results
+        .filter(({ count }) => count > 0 || total === 0)
+        .map(({ app, count, who }) => (
+          <div
+            key={app.id}
+            className={`result-card${count === total && total > 0 ? ' top-pick' : ''}`}
+          >
+            <div
+              className={`count-badge${count === total && total > 0 ? ' full' : ''}`}
+            >
+              {count}
+            </div>
+            <div className="result-body" style={{ paddingRight: 0 }}>
+              <p className="result-app-name">
+                {app.website_url ? (
+                  <a href={app.website_url} target="_blank" rel="noopener noreferrer">
+                    {app.name}
+                  </a>
+                ) : (
+                  app.name
+                )}
+              </p>
+              {app.description && (
+                <p className="result-description">{app.description}</p>
               )}
-            </p>
-            <p className="result-description">{app.description}</p>
-            <div className="result-score-row">
-              <span className="result-score-num">{score}</span>
-              <span className="result-score-label">pts</span>
+              {who.length > 0 && (
+                <div className="result-who">
+                  {who.map((p) => (
+                    <span key={p.id} className="chip has-app">{p.name}</span>
+                  ))}
+                  {participants
+                    .filter((p) => !who.find((w) => w.id === p.id))
+                    .map((p) => (
+                      <span key={p.id} className="chip">{p.name}</span>
+                    ))}
+                </div>
+              )}
             </div>
           </div>
-          <span className="result-rank-ghost" aria-hidden="true">{i + 1}</span>
-        </div>
-      ))}
+        ))}
     </>
   );
 }

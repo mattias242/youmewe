@@ -1,26 +1,35 @@
-import { render, screen, act } from '@testing-library/react';
-import { vi, describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import App from './App';
 
-vi.mock('./api/api');
-vi.mock('./components/GroupWizard', () => ({
-  default: ({ onComplete }) => <button onClick={() => onComplete({ session: { id: 1 }, participants: [], features: [] })}>MockWizard</button>,
+vi.mock('./components/CreatorFlow', () => ({
+  default: () => <div>MockCreator</div>,
 }));
-vi.mock('./components/ResultsPage', () => ({
-  default: () => <div>MockResults</div>,
+vi.mock('./components/JoinFlow', () => ({
+  default: ({ joinCode }) => <div>MockJoin:{joinCode}</div>,
 }));
 
 describe('App', () => {
-  it('renders GroupWizard initially', () => {
-    render(<App />);
-    expect(screen.getByText('MockWizard')).toBeInTheDocument();
+  const originalLocation = window.location;
+
+  afterEach(() => {
+    Object.defineProperty(window, 'location', {
+      value: originalLocation,
+      writable: true,
+    });
   });
 
-  it('shows ResultsPage after wizard completes with no participants', async () => {
+  it('renders CreatorFlow when no join param', () => {
     render(<App />);
-    await act(async () => {
-      screen.getByText('MockWizard').click();
+    expect(screen.getByText('MockCreator')).toBeInTheDocument();
+  });
+
+  it('renders JoinFlow with code when join param present', () => {
+    Object.defineProperty(window, 'location', {
+      value: { ...originalLocation, search: '?join=ABC123' },
+      writable: true,
     });
-    expect(screen.getByText('MockResults')).toBeInTheDocument();
+    render(<App />);
+    expect(screen.getByText('MockJoin:ABC123')).toBeInTheDocument();
   });
 });

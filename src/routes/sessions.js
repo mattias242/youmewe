@@ -4,12 +4,25 @@ const { Router } = require('express');
 
 const VALID_STATUSES = ['open', 'closed'];
 
+function generateShareCode() {
+  return Math.random().toString(36).slice(2, 8).toUpperCase();
+}
+
 function sessionsRouter(db) {
   const router = Router();
 
   router.get('/', (req, res) => {
     const sessions = db.prepare('SELECT * FROM sessions ORDER BY id').all();
     res.json(sessions);
+  });
+
+  // Must be before /:id to avoid "join" being treated as an id
+  router.get('/join/:code', (req, res) => {
+    const session = db
+      .prepare('SELECT * FROM sessions WHERE share_code = ?')
+      .get(req.params.code);
+    if (!session) return res.status(404).json({ error: 'Session not found' });
+    res.json(session);
   });
 
   router.get('/:id', (req, res) => {
@@ -21,8 +34,24 @@ function sessionsRouter(db) {
   router.post('/', (req, res) => {
     const { name } = req.body;
     if (!name) return res.status(400).json({ error: 'name is required' });
-    const info = db.prepare('INSERT INTO sessions (name) VALUES (?)').run(name);
-    const created = db.prepare('SELECT * FROM sessions WHERE id = ?').get(info.lastInsertRowid);
+
+    let share_code;
+    let attempts = 0;
+    while (attempts < 10) {
+      share_code = generateShareCode();
+      const existing = db
+        .prepare('SELECT id FROM sessions WHERE share_code = ?')
+        .get(share_code);
+      if (!existing) break;
+      attempts++;
+    }
+
+    const info = db
+      .prepare('INSERT INTO sessions (name, share_code) VALUES (?, ?)')
+      .run(name, share_code);
+    const created = db
+      .prepare('SELECT * FROM sessions WHERE id = ?')
+      .get(info.lastInsertRowid);
     res.status(201).json(created);
   });
 

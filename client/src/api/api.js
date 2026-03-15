@@ -12,6 +12,9 @@ export const createSession = (name) =>
     body: JSON.stringify({ name }),
   });
 
+export const getSessionByCode = (code) =>
+  apiFetch(`/sessions/join/${code}`);
+
 export const addParticipant = (sessionId, name) =>
   apiFetch(`/sessions/${sessionId}/participants`, {
     method: 'POST',
@@ -19,14 +22,25 @@ export const addParticipant = (sessionId, name) =>
     body: JSON.stringify({ name }),
   });
 
-export const getFeatures = () => apiFetch('/features');
+export const getApps = () => apiFetch('/apps');
 
+export const saveParticipantApps = (sessionId, participantId, appIds) =>
+  apiFetch(`/sessions/${sessionId}/participants/${participantId}/apps`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ app_ids: appIds }),
+  });
+
+export const getResults = (sessionId) =>
+  apiFetch(`/sessions/${sessionId}/results`);
+
+// Legacy — kept for old backend tests
+export const getFeatures = () => apiFetch('/features');
 export const savePreference = (sessionId, participantId, featureId, weight) =>
   apiFetch(`/sessions/${sessionId}/preferences`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ participant_id: participantId, feature_id: featureId, weight }),
   });
-
 export const getRecommendations = (sessionId) =>
   apiFetch(`/sessions/${sessionId}/recommend`);

@@ -40,6 +40,7 @@ function applySchema(db) {
     CREATE TABLE IF NOT EXISTS sessions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
+      share_code TEXT UNIQUE,
       status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'closed')),
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -62,7 +63,18 @@ function applySchema(db) {
       updated_at TEXT NOT NULL DEFAULT (datetime('now')),
       UNIQUE (participant_id, feature_id)
     );
+
+    CREATE TABLE IF NOT EXISTS participant_apps (
+      participant_id INTEGER NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
+      app_id INTEGER NOT NULL REFERENCES apps(id) ON DELETE CASCADE,
+      PRIMARY KEY (participant_id, app_id)
+    );
   `);
+
+  // Migration: add share_code to existing sessions tables that lack the column
+  try {
+    db.exec('ALTER TABLE sessions ADD COLUMN share_code TEXT');
+  } catch (_) { /* column already exists */ }
 }
 
 module.exports = { createDb };

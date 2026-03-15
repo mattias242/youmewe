@@ -1,53 +1,86 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { vi, describe, it, expect } from 'vitest';
-import PreferenceForm from './PreferenceForm';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+import * as api from '../api/api';
+import JoinFlow from './JoinFlow';
 
-describe('PreferenceForm', () => {
+vi.mock('../api/api');
+
+const mockSession = { id: 1, name: 'Fredagsgänget', share_code: 'ABC123' };
+const mockApps = [
+  { id: 1, name: 'Signal', description: 'Privacy first', website_url: 'https://signal.org' },
+  { id: 2, name: 'Telegram', description: 'Feature rich', website_url: 'https://telegram.org' },
+];
+
+describe('JoinFlow', () => {
   const user = userEvent.setup();
 
-  const features = [
-    { id: 1, name: 'Free plan' },
-    { id: 2, name: 'Encryption' },
-  ];
-  const participant = { id: 1, name: 'Alice' };
-
-  it('shows participant name', () => {
-    render(<PreferenceForm features={features} participant={participant} onSave={() => {}} />);
-    expect(screen.getByText(/alice/i)).toBeInTheDocument();
+  beforeEach(() => {
+    vi.resetAllMocks();
+    vi.mocked(api.getSessionByCode).mockResolvedValue(mockSession);
+    vi.mocked(api.getApps).mockResolvedValue(mockApps);
+    vi.mocked(api.addParticipant).mockResolvedValue({ id: 10, name: 'Alice', session_id: 1 });
+    vi.mocked(api.saveParticipantApps).mockResolvedValue({ ok: true });
   });
 
-  it('renders each feature', () => {
-    render(<PreferenceForm features={features} participant={participant} onSave={() => {}} />);
-    expect(screen.getByText('Free plan')).toBeInTheDocument();
-    expect(screen.getByText('Encryption')).toBeInTheDocument();
+  it('shows group name after loading', async () => {
+    render(<JoinFlow joinCode="ABC123" />);
+    await waitFor(() =>
+      expect(screen.getByText('Fredagsgänget')).toBeInTheDocument()
+    );
   });
 
-  it('renders rating buttons 1-5 for each feature', () => {
-    render(<PreferenceForm features={features} participant={participant} onSave={() => {}} />);
-    const ratingButtons = screen.getAllByRole('button', { name: /^[1-5]$/ });
-    expect(ratingButtons).toHaveLength(features.length * 5);
+  it('shows name input and continue button', async () => {
+    render(<JoinFlow joinCode="ABC123" />);
+    await waitFor(() => screen.getByPlaceholderText(/ditt namn/i));
+    expect(screen.getByRole('button', { name: /fortsätt/i })).toBeInTheDocument();
   });
 
-  it('highlights selected rating', async () => {
-    render(<PreferenceForm features={features} participant={participant} onSave={() => {}} />);
-    const threeButtons = screen.getAllByRole('button', { name: '3' });
-    await user.click(threeButtons[0]);
-    expect(threeButtons[0]).toHaveAttribute('aria-pressed', 'true');
+  it('advances to app selection after entering name', async () => {
+    render(<JoinFlow joinCode="ABC123" />);
+    await waitFor(() => screen.getByPlaceholderText(/ditt namn/i));
+    await user.type(screen.getByPlaceholderText(/ditt namn/i), 'Alice');
+    await user.click(screen.getByRole('button', { name: /fortsätt/i }));
+    await waitFor(() =>
+      expect(screen.getByText('Signal')).toBeInTheDocument()
+    );
+    expect(screen.getByText('Telegram')).toBeInTheDocument();
   });
 
-  it('calls onSave with weights array on save', async () => {
-    const onSave = vi.fn();
-    render(<PreferenceForm features={features} participant={participant} onSave={onSave} />);
+  it('toggles app selection', async () => {
+    render(<JoinFlow joinCode="ABC123" />);
+    await waitFor(() => screen.getByPlaceholderText(/ditt namn/i));
+    await user.type(screen.getByPlaceholderText(/ditt namn/i), 'Alice');
+    await user.click(screen.getByRole('button', { name: /fortsätt/i }));
+    await waitFor(() => screen.getByText('Signal'));
+    const signalBtn = screen.getByRole('button', { name: /signal/i });
+    expect(signalBtn).toHaveAttribute('aria-pressed', 'false');
+    await user.click(signalBtn);
+    expect(signalBtn).toHaveAttribute('aria-pressed', 'true');
+  });
 
-    const threeButtons = screen.getAllByRole('button', { name: '3' });
-    await user.click(threeButtons[0]);
+  it('calls saveParticipantApps on submit', async () => {
+    render(<JoinFlow joinCode="ABC123" />);
+    await waitFor(() => screen.getByPlaceholderText(/ditt namn/i));
+    await user.type(screen.getByPlaceholderText(/ditt namn/i), 'Alice');
+    await user.click(screen.getByRole('button', { name: /fortsätt/i }));
+    await waitFor(() => screen.getByText('Signal'));
+    await user.click(screen.getByRole('button', { name: /signal/i }));
+    await user.click(screen.getByRole('button', { name: /skicka in/i }));
+    await waitFor(() =>
+      expect(api.saveParticipantApps).toHaveBeenCalledWith(1, 10, [1])
+    );
+  });
 
-    await user.click(screen.getByRole('button', { name: /save/i }));
-
-    expect(onSave).toHaveBeenCalledWith([
-      { featureId: 1, weight: 3 },
-      { featureId: 2, weight: 0 },
-    ]);
+  it('shows confirmation after submit', async () => {
+    render(<JoinFlow joinCode="ABC123" />);
+    await waitFor(() => screen.getByPlaceholderText(/ditt namn/i));
+    await user.type(screen.getByPlaceholderText(/ditt namn/i), 'Alice');
+    await user.click(screen.getByRole('button', { name: /fortsätt/i }));
+    await waitFor(() => screen.getByText('Signal'));
+    await user.click(screen.getByRole('button', { name: /skicka in/i }));
+    await waitFor(() =>
+      expect(screen.getByText(/tack/i)).toBeInTheDocument()
+    );
   });
 });
