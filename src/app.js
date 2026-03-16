@@ -15,7 +15,7 @@ const { sendResultRouter } = require('./routes/send-result');
 
 const createSession   = rateLimit({ windowMs: 60 * 60 * 1000, limit: 10,  message: { error: 'För många grupper skapade — försök igen om en timme.' } });
 const joinSession     = rateLimit({ windowMs: 60 * 60 * 1000, limit: 20,  message: { error: 'För många försök — försök igen om en timme.' } });
-const sendResultLimit = rateLimit({ windowMs: 60 * 60 * 1000, limit: 5,   message: { error: 'För många mejlutskick — försök igen om en timme.' } });
+const sendResultLimit = rateLimit({ windowMs: 60 * 60 * 1000, limit: 100, message: { error: 'För många mejlutskick — försök igen om en timme.' } });
 
 function createApp(db) {
   const app = express();
