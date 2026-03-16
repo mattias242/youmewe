@@ -658,17 +658,47 @@ input[type="text"]:focus {
 
 /* ── Confirmation screen ─────────────────────── */
 
+.confirm-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.confirm-group-name {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-style: italic;
+  font-size: 38px;
+  letter-spacing: -0.03em;
+  color: var(--accent);
+  line-height: 1.05;
+  margin-bottom: 28px;
+}
+
+.confirm-heading-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.confirm-heading-row .section-title {
+  margin-bottom: 0;
+}
+
 .confirm-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-  display: block;
+  font-size: 28px;
+  color: var(--accent);
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .waiting-note {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--muted);
-  line-height: 1.6;
-  margin-top: 16px;
+  line-height: 1.65;
 }
 
 /* ── Refresh row ─────────────────────────────── */

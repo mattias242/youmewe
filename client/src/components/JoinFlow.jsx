@@ -143,25 +143,24 @@ export default function JoinFlow({ joinCode }) {
 
   return (
     <>
-      <span className="confirm-icon">✓</span>
-      <p className="section-title">Tack, {participant.name}!</p>
+      <p className="confirm-eyebrow">Du har svarat i</p>
+      <p className="confirm-group-name">{session.name}</p>
+      <div className="confirm-heading-row">
+        <span className="confirm-icon">✓</span>
+        <p className="section-title">Tack, {participant.name}!</p>
+      </div>
       <p className="waiting-note">
-        Ditt svar är sparat. Nu väntar vi på att alla i <strong>{session.name}</strong> ska svara.
-        <br /><br />
-        Den som skapade gruppen ser resultaten.
+        Ditt svar är sparat. Den som skapade gruppen ser resultaten när alla svarat.
+      </p>
+      <p className="pref-label" style={{ marginTop: 32, marginBottom: 10 }}>
+        {selectedApps.length > 0 ? 'Dina valda appar' : 'Du valde inga appar'}
       </p>
       {selectedApps.length > 0 && (
-        <>
-          <p className="pref-label" style={{ marginTop: 28, marginBottom: 10 }}>Dina valda appar</p>
-          <div className="result-who">
-            {selectedApps.map((a) => (
-              <span key={a.id} className="chip has-app">{a.name}</span>
-            ))}
-          </div>
-        </>
-      )}
-      {selectedApps.length === 0 && (
-        <p className="pref-label" style={{ marginTop: 28 }}>Du valde inga appar.</p>
+        <div className="result-who">
+          {selectedApps.map((a) => (
+            <span key={a.id} className="chip has-app">{a.name}</span>
+          ))}
+        </div>
       )}
     </>
   );
