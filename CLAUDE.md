@@ -1,35 +1,35 @@
 # YouMeWe
 
-React + Express 5 + SQLite-app som hjälper grupper hitta gemensam chattapp.
+React + Express 5 + SQLite app that helps groups find a common chat app.
 
-## Utveckling
+## Development
 
 ```bash
 # Backend (port 3000)
 npm install && npm run dev
 
-# Frontend (port 5173, proxy → 3000)
+# Frontend (port 5173, proxies → 3000)
 cd client && npm install && npm run dev
 ```
 
-## Arkitektur
+## Architecture
 
 - `src/` — Express 5 backend
-- `src/routes/` — API-rutter
-- `src/db.js` — SQLite-schema och migrationer
+- `src/routes/` — API routes
+- `src/db.js` — SQLite schema and migrations
 - `src/mailer.js` — Nodemailer via Mailgun EU SMTP
 - `client/src/` — React + Vite SPA
 - `client/src/components/` — CreatorFlow, JoinFlow, ResultsPage, MyGroups
-- `client/src/groups.js` — localStorage-hjälpare för "Mina grupper"
-- `public/` — byggs av Vite vid deploy, serveras av Express
+- `client/src/groups.js` — localStorage helpers for "My Groups"
+- `public/` — built by Vite on deploy, served by Express
 
-## Viktiga quirks
+## Important quirks
 
-- **Express 5 wildcards:** `/{*path}` inte `*` i SPA-fallback
-- **SQLite strängar:** enkla citattecken (`email != ''`), inte dubbla
-- **Mailgun EU:** alltid `smtp.eu.mailgun.org`, aldrig `smtp.mailgun.org`
+- **Express 5 wildcards:** use `/{*path}` not `*` in SPA fallback
+- **SQLite strings:** single quotes (`email != ''`), not double quotes
+- **Mailgun EU:** always `smtp.eu.mailgun.org`, never `smtp.mailgun.org`
 
-## Deploy till NAS
+## Deploy to NAS
 
 ```bash
 tar --exclude='node_modules' --exclude='client/node_modules' \
@@ -49,5 +49,5 @@ ssh mattiaswahlberg@your-nas-host "
 - **URL:** https://youmewe.neomeda.se
 - **Path:** `/path/to/deploy`
 - **Container:** `youmewe-youmewe-1`, port `3456:3000`
-- **DB:** Docker-volym `youmewe_youmewe-data` → `/data/youmewe.db`
-- **Env:** `/path/to/deploy/.env` (Mailgun-credentials)
+- **DB:** Docker volume `youmewe_youmewe-data` → `/data/youmewe.db`
+- **Env:** `/path/to/deploy/.env` (Mailgun credentials)
