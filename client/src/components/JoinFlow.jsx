@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getSessionByCode, addParticipant, getApps, saveParticipantApps } from '../api/api';
+import { saveGroup } from '../groups';
 
 export default function JoinFlow({ joinCode }) {
   const [session, setSession] = useState(null);
@@ -51,6 +52,7 @@ export default function JoinFlow({ joinCode }) {
     setSubmitting(true);
     try {
       await saveParticipantApps(session.id, participant.id, Array.from(selectedAppIds));
+      saveGroup({ type: 'participant', sessionId: session.id, sessionName: session.name, participantName: participant.name, created_at: new Date().toISOString() });
       setStep('done');
     } finally {
       setSubmitting(false);

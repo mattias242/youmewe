@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { createSession } from '../api/api';
+import { saveGroup } from '../groups';
 import ResultsPage from './ResultsPage';
 
 export default function CreatorFlow({ sessionId: initialId }) {
@@ -21,6 +22,7 @@ export default function CreatorFlow({ sessionId: initialId }) {
       const sess = await createSession(groupName.trim());
       // Uppdatera URL — adressfältet är persistensen
       window.history.replaceState({}, '', `?mine=${sess.id}`);
+      saveGroup({ type: 'organizer', sessionId: sess.id, name: sess.name, share_code: sess.share_code, created_at: new Date().toISOString() });
       setSession(sess);
       setStep('share');
     } finally {
