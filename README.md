@@ -1,5 +1,7 @@
 # YouMeWe
 
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+
 Hitta gruppens gemensamma chattapp. Skaparen delar en länk — varje deltagare anger sitt namn och vilka appar de redan har installerade. Skaparen ser överlappet direkt.
 
 ## Stack
