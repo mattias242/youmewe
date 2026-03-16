@@ -2,11 +2,18 @@ import { useState } from 'react';
 import { createSession } from '../api/api';
 import ResultsPage from './ResultsPage';
 
+const STORAGE_KEY = 'youmewe_session';
+
+export function getSavedSession() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; }
+}
+
 export default function CreatorFlow() {
-  const [step, setStep] = useState('name');
+  const saved = getSavedSession();
+  const [step, setStep] = useState(saved ? 'share' : 'name');
   const [groupName, setGroupName] = useState('');
   const [nameError, setNameError] = useState('');
-  const [session, setSession] = useState(null);
+  const [session, setSession] = useState(saved);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -19,11 +26,19 @@ export default function CreatorFlow() {
     setLoading(true);
     try {
       const sess = await createSession(groupName.trim());
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(sess));
       setSession(sess);
       setStep('share');
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleNewGroup() {
+    localStorage.removeItem(STORAGE_KEY);
+    setSession(null);
+    setGroupName('');
+    setStep('name');
   }
 
   function getShareUrl() {
@@ -81,6 +96,10 @@ export default function CreatorFlow() {
       </div>
 
       <ResultsPage sessionId={session.id} />
+
+      <button className="btn-secondary" onClick={handleNewGroup} style={{ marginTop: 24 }}>
+        Ny grupp
+      </button>
     </>
   );
 }
