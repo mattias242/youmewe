@@ -2,18 +2,11 @@ import { useState } from 'react';
 import { createSession } from '../api/api';
 import ResultsPage from './ResultsPage';
 
-const STORAGE_KEY = 'youmewe_session';
-
-export function getSavedSession() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; }
-}
-
-export default function CreatorFlow() {
-  const saved = getSavedSession();
-  const [step, setStep] = useState(saved ? 'share' : 'name');
+export default function CreatorFlow({ sessionId: initialId }) {
+  const [step, setStep] = useState(initialId ? 'share' : 'name');
   const [groupName, setGroupName] = useState('');
   const [nameError, setNameError] = useState('');
-  const [session, setSession] = useState(saved);
+  const [session, setSession] = useState(initialId ? { id: initialId } : null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -26,19 +19,13 @@ export default function CreatorFlow() {
     setLoading(true);
     try {
       const sess = await createSession(groupName.trim());
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(sess));
+      // Uppdatera URL — adressfältet är persistensen
+      window.history.replaceState({}, '', `?mine=${sess.id}`);
       setSession(sess);
       setStep('share');
     } finally {
       setLoading(false);
     }
-  }
-
-  function handleNewGroup() {
-    localStorage.removeItem(STORAGE_KEY);
-    setSession(null);
-    setGroupName('');
-    setStep('name');
   }
 
   function getShareUrl() {
@@ -50,9 +37,14 @@ export default function CreatorFlow() {
       await navigator.clipboard.writeText(getShareUrl());
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (_) {
-      /* fallback: select the text */
-    }
+    } catch (_) {}
+  }
+
+  function handleNewGroup() {
+    window.history.replaceState({}, '', window.location.pathname);
+    setSession(null);
+    setGroupName('');
+    setStep('name');
   }
 
   if (step === 'name') {
@@ -79,23 +71,25 @@ export default function CreatorFlow() {
 
   return (
     <>
-      <p className="section-title">{session.name}</p>
+      {session.name && <p className="section-title">{session.name}</p>}
       <p className="section-sub">Dela länken — alla fyller i vilka appar de har.</p>
 
-      <div className="share-box">
-        <p className="share-label">Delbar länk</p>
-        <div className="share-url-row">
-          <span className="share-url">{getShareUrl()}</span>
-          <button
-            className={`btn-copy${copied ? ' copied' : ''}`}
-            onClick={handleCopy}
-          >
-            {copied ? '✓ Kopierad' : 'Kopiera'}
-          </button>
+      {session.share_code && (
+        <div className="share-box">
+          <p className="share-label">Delbar länk</p>
+          <div className="share-url-row">
+            <span className="share-url">{getShareUrl()}</span>
+            <button
+              className={`btn-copy${copied ? ' copied' : ''}`}
+              onClick={handleCopy}
+            >
+              {copied ? '✓ Kopierad' : 'Kopiera'}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
-      <ResultsPage sessionId={session.id} isCreator />
+      <ResultsPage sessionId={session.id} isCreator={!!session.share_code} />
 
       <button className="btn-secondary" onClick={handleNewGroup} style={{ marginTop: 24 }}>
         Ny grupp
