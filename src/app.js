@@ -10,6 +10,7 @@ const { preferencesRouter } = require('./routes/preferences');
 const { recommendationsRouter } = require('./routes/recommendations');
 const { participantAppsRouter } = require('./routes/participant-apps');
 const { resultsRouter } = require('./routes/results');
+const { sendResultRouter } = require('./routes/send-result');
 
 function createApp(db) {
   const app = express();
@@ -25,6 +26,7 @@ function createApp(db) {
   app.use('/sessions/:sessionId/preferences', preferencesRouter(db));
   app.use('/sessions/:sessionId/recommend', recommendationsRouter(db));
   app.use('/sessions/:sessionId/results', resultsRouter(db));
+  app.use('/sessions/:sessionId/send-result', sendResultRouter(db));
 
   return app;
 }

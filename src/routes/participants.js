@@ -17,11 +17,11 @@ function participantsRouter(db) {
   router.post('/', (req, res) => {
     const session = db.prepare('SELECT id FROM sessions WHERE id = ?').get(req.params.sessionId);
     if (!session) return res.status(404).json({ error: 'Session not found' });
-    const { name } = req.body;
+    const { name, email } = req.body;
     if (!name) return res.status(400).json({ error: 'name is required' });
     const info = db.prepare(
-      'INSERT INTO participants (session_id, name) VALUES (?, ?)'
-    ).run(req.params.sessionId, name);
+      'INSERT INTO participants (session_id, name, email) VALUES (?, ?, ?)'
+    ).run(req.params.sessionId, name, email || null);
     const created = db.prepare('SELECT * FROM participants WHERE id = ?').get(info.lastInsertRowid);
     res.status(201).json(created);
   });

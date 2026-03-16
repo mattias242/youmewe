@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getResults } from '../api/api';
+import { getResults, sendResult } from '../api/api';
 
-export default function ResultsPage({ sessionId }) {
+export default function ResultsPage({ sessionId, isCreator }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
+  const [sending, setSending] = useState(false);
+  const [sendStatus, setSendStatus] = useState(null);
 
   const load = useCallback(() => {
     setError(null);
@@ -14,11 +16,29 @@ export default function ResultsPage({ sessionId }) {
 
   useEffect(() => { load(); }, [load]);
 
+  async function handleSend() {
+    const topApp = data?.results?.find(({ count }) => count > 0);
+    if (!topApp) return;
+    setSending(true);
+    setSendStatus(null);
+    try {
+      const res = await sendResult(sessionId, topApp.app.id);
+      setSendStatus(res.sent > 0
+        ? `✓ Skickat till ${res.sent} person${res.sent > 1 ? 'er' : ''}!`
+        : 'Inga mejladresser sparade ännu.');
+    } catch (e) {
+      setSendStatus(`Fel: ${e.message}`);
+    } finally {
+      setSending(false);
+    }
+  }
+
   if (error) return <p className="status-text">{error}</p>;
   if (!data)  return <p className="status-text">Laddar…</p>;
 
   const { participants, results } = data;
   const total = participants.length;
+  const topApp = results.find(({ count }) => count > 0);
 
   return (
     <>
@@ -33,6 +53,21 @@ export default function ResultsPage({ sessionId }) {
         <p className="results-meta">
           {total} {total === 1 ? 'person' : 'personer'} har svarat
         </p>
+      )}
+
+      {isCreator && topApp && (
+        <div style={{ marginBottom: 20 }}>
+          <button
+            className="btn-primary"
+            onClick={handleSend}
+            disabled={sending}
+          >
+            {sending ? 'Skickar…' : `Kör med ${topApp.app.name} — mejla alla`}
+          </button>
+          {sendStatus && (
+            <p className="results-meta" style={{ marginTop: 8 }}>{sendStatus}</p>
+          )}
+        </div>
       )}
 
       {results

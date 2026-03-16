@@ -95,7 +95,7 @@ export default function CreatorFlow() {
         </div>
       </div>
 
-      <ResultsPage sessionId={session.id} />
+      <ResultsPage sessionId={session.id} isCreator />
 
       <button className="btn-secondary" onClick={handleNewGroup} style={{ marginTop: 24 }}>
         Ny grupp

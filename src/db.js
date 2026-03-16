@@ -71,10 +71,9 @@ function applySchema(db) {
     );
   `);
 
-  // Migration: add share_code to existing sessions tables that lack the column
-  try {
-    db.exec('ALTER TABLE sessions ADD COLUMN share_code TEXT');
-  } catch (_) { /* column already exists */ }
+  // Migrations
+  try { db.exec('ALTER TABLE sessions ADD COLUMN share_code TEXT'); } catch (_) {}
+  try { db.exec('ALTER TABLE participants ADD COLUMN email TEXT'); } catch (_) {}
 }
 
 module.exports = { createDb };

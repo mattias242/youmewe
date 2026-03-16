@@ -154,6 +154,28 @@ input[type="text"] {
   margin-bottom: 12px;
 }
 
+input[type="email"] {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  padding: 14px 16px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
+  display: block;
+  margin-bottom: 12px;
+}
+
+input[type="email"]::placeholder { color: var(--muted); }
+input[type="email"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
 input[type="text"]::placeholder {
   color: var(--muted);
 }

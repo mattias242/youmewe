@@ -15,11 +15,18 @@ export const createSession = (name) =>
 export const getSessionByCode = (code) =>
   apiFetch(`/sessions/join/${code}`);
 
-export const addParticipant = (sessionId, name) =>
+export const addParticipant = (sessionId, name, email) =>
   apiFetch(`/sessions/${sessionId}/participants`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name }),
+    body: JSON.stringify({ name, email: email || undefined }),
+  });
+
+export const sendResult = (sessionId, appId) =>
+  apiFetch(`/sessions/${sessionId}/send-result`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ app_id: appId }),
   });
 
 export const getApps = () => apiFetch('/apps');

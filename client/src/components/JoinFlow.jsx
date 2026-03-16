@@ -8,6 +8,7 @@ export default function JoinFlow({ joinCode }) {
   const [step, setStep] = useState('loading');
 
   const [participantName, setParticipantName] = useState('');
+  const [participantEmail, setParticipantEmail] = useState('');
   const [nameError, setNameError] = useState('');
   const [selectedAppIds, setSelectedAppIds] = useState(new Set());
   const [participant, setParticipant] = useState(null);
@@ -32,7 +33,7 @@ export default function JoinFlow({ joinCode }) {
       return;
     }
     setNameError('');
-    const p = await addParticipant(session.id, participantName.trim());
+    const p = await addParticipant(session.id, participantName.trim(), participantEmail.trim());
     setParticipant(p);
     setStep('apps');
   }
@@ -71,6 +72,13 @@ export default function JoinFlow({ joinCode }) {
           onChange={(e) => setParticipantName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleJoin()}
           autoFocus
+        />
+        <input
+          type="email"
+          placeholder="Din mejladress (valfri)"
+          value={participantEmail}
+          onChange={(e) => setParticipantEmail(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleJoin()}
         />
         {nameError && <p role="alert" className="error-msg">{nameError}</p>}
         <button className="btn-primary" onClick={handleJoin}>Fortsätt</button>
