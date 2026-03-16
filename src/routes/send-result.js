@@ -21,7 +21,7 @@ function sendResultRouter(db) {
     if (!app) return res.status(404).json({ error: 'App not found' });
 
     const participants = db
-      .prepare('SELECT * FROM participants WHERE session_id = ? AND email IS NOT NULL AND email != ""')
+      .prepare("SELECT * FROM participants WHERE session_id = ? AND email IS NOT NULL AND email != ''")
       .all(req.params.sessionId);
 
     const results = await Promise.allSettled(
