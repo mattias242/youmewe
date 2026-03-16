@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { getSessionByCode, addParticipant, getApps, saveParticipantApps } from '../api/api';
 import { saveGroup } from '../groups';
 
+const REJOIN_KEY = (code) => `youmewe_join_${code}`;
+
 export default function JoinFlow({ joinCode }) {
   const [session, setSession] = useState(null);
   const [apps, setApps] = useState([]);
@@ -20,6 +22,15 @@ export default function JoinFlow({ joinCode }) {
       .then(([sess, appList]) => {
         setSession(sess);
         setApps(appList);
+        try {
+          const saved = JSON.parse(localStorage.getItem(REJOIN_KEY(joinCode)));
+          if (saved) {
+            setParticipant({ id: saved.participantId, name: saved.participantName });
+            setSelectedAppIds(new Set(saved.selectedAppIds));
+            setStep('done');
+            return;
+          }
+        } catch (_) {}
         setStep('name');
       })
       .catch((e) => {
@@ -53,6 +64,11 @@ export default function JoinFlow({ joinCode }) {
     try {
       await saveParticipantApps(session.id, participant.id, Array.from(selectedAppIds));
       saveGroup({ type: 'participant', sessionId: session.id, sessionName: session.name, participantName: participant.name, created_at: new Date().toISOString() });
+      localStorage.setItem(REJOIN_KEY(joinCode), JSON.stringify({
+        participantId: participant.id,
+        participantName: participant.name,
+        selectedAppIds: Array.from(selectedAppIds),
+      }));
       setStep('done');
     } finally {
       setSubmitting(false);
@@ -123,6 +139,8 @@ export default function JoinFlow({ joinCode }) {
     );
   }
 
+  const selectedApps = apps.filter((a) => selectedAppIds.has(a.id));
+
   return (
     <>
       <span className="confirm-icon">✓</span>
@@ -132,6 +150,19 @@ export default function JoinFlow({ joinCode }) {
         <br /><br />
         Den som skapade gruppen ser resultaten.
       </p>
+      {selectedApps.length > 0 && (
+        <>
+          <p className="pref-label" style={{ marginTop: 28, marginBottom: 10 }}>Dina valda appar</p>
+          <div className="result-who">
+            {selectedApps.map((a) => (
+              <span key={a.id} className="chip has-app">{a.name}</span>
+            ))}
+          </div>
+        </>
+      )}
+      {selectedApps.length === 0 && (
+        <p className="pref-label" style={{ marginTop: 28 }}>Du valde inga appar.</p>
+      )}
     </>
   );
 }
