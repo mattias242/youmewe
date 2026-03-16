@@ -8,8 +8,8 @@ Find the chat app your whole group already has. The organizer shares a link — 
 
 - **Backend:** Node.js + Express 5 + SQLite (better-sqlite3)
 - **Frontend:** React + Vite (SPA)
-- **Email:** Nodemailer via Mailgun EU SMTP
-- **Deploy:** Docker (multi-stage build), Synology NAS
+- **Email:** Nodemailer (e.g. Mailgun SMTP)
+- **Deploy:** Docker (multi-stage build)
 
 ## Flow
 
@@ -31,40 +31,23 @@ npm install
 npm run dev          # Vite on port 5173 (proxies → 3000)
 ```
 
-## Deploy to NAS
+## Docker
 
 ```bash
-# Package and transfer
-tar --exclude='node_modules' --exclude='client/node_modules' \
-    --exclude='client/dist' --exclude='.git' --exclude='*.db' \
-    -czf /tmp/youmewe.tar.gz .
-scp -O /tmp/youmewe.tar.gz mattiaswahlberg@your-nas-host:/path/to/deploy/
-
-# Extract and build on NAS
-ssh mattiaswahlberg@your-nas-host "
-  cd /path/to/deploy
-  tar -xzf youmewe.tar.gz --overwrite && rm youmewe.tar.gz
-  /var/packages/ContainerManager/target/usr/bin/docker-compose up -d --build
-"
+docker-compose up -d --build
 ```
+
+The app listens on port `3000` inside the container. Map it to whatever host port you prefer in `docker-compose.yml`.
 
 ## Environment variables (.env)
 
 ```env
-SMTP_HOST=smtp.eu.mailgun.org
+SMTP_HOST=smtp.mailgun.org      # or any SMTP provider
 SMTP_PORT=587
-SMTP_USER=<mailgun-user>
-SMTP_PASS=<mailgun-password>
+SMTP_USER=<your-smtp-user>
+SMTP_PASS=<your-smtp-password>
 SMTP_FROM=YouMeWe <noreply@yourdomain.com>
 ```
-
-## NAS configuration
-
-- **Deploy path:** `/path/to/deploy`
-- **Container port:** `3456` → `3000`
-- **Database:** Docker volume `youmewe_youmewe-data` → `/data/youmewe.db`
-- **URL:** https://youmewe.neomeda.se
-- **Reverse proxy:** DSM Control Panel → Login Portal → Advanced
 
 ## API routes
 
