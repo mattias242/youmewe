@@ -17,6 +17,17 @@ function createApp(db) {
   app.use(express.json());
   app.use(express.static('public'));
 
+  // SPA-fallback: icke-API-routes skickar index.html
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/sessions') ||
+        req.path.startsWith('/apps') ||
+        req.path.startsWith('/features')) return next();
+    const path = require('path');
+    res.sendFile(path.join(__dirname, '../public/index.html'), (err) => {
+      if (err) next(); // dev: ingen dist ännu
+    });
+  });
+
   app.use('/apps', appsRouter(db));
   app.use('/apps/:appId/features', appFeaturesRouter(db));
   app.use('/features', featuresRouter(db));

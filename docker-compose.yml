@@ -1,0 +1,16 @@
+services:
+  youmewe:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3456:3000"   # port 3456 på NAS → 3000 i container
+    volumes:
+      - youmewe-data:/data
+    env_file:
+      - .env          # SMTP-credentials — lägg INTE i git
+    environment:
+      NODE_ENV: production
+      DB_PATH: /data/youmewe.db
+
+volumes:
+  youmewe-data:

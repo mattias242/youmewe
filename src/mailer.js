@@ -18,6 +18,14 @@ function createTransport() {
 
 const transport = createTransport();
 
+function esc(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 async function sendResultEmail({ to, name, groupName, app }) {
   if (!transport) {
     console.warn('[mailer] SMTP ej konfigurerat — mejl skickas inte.');
@@ -49,13 +57,13 @@ async function sendResultEmail({ to, name, groupName, app }) {
 <body>
   <div class="wrap">
     <div class="logo">You<span>Me</span>We</div>
-    <h1 class="heading">${groupName} kör med ${app.name}!</h1>
-    <p class="sub">Hej ${name} — gruppen har bestämt sig.</p>
+    <h1 class="heading">${esc(groupName)} kör med ${esc(app.name)}!</h1>
+    <p class="sub">Hej ${esc(name)} — gruppen har bestämt sig.</p>
     <div class="card">
-      <p class="app-name">${app.name}</p>
-      <p class="app-desc">${app.description || ''}</p>
+      <p class="app-name">${esc(app.name)}</p>
+      <p class="app-desc">${esc(app.description)}</p>
       ${app.website_url
-        ? `<a class="app-link" href="${app.website_url}">Öppna ${app.name}</a>`
+        ? `<a class="app-link" href="${esc(app.website_url)}">Öppna ${esc(app.name)}</a>`
         : ''}
     </div>
     <p class="footer">Skickat via YouMeWe — hitta gruppens chattapp.</p>
@@ -66,7 +74,7 @@ async function sendResultEmail({ to, name, groupName, app }) {
   return transport.sendMail({
     from: process.env.SMTP_FROM || process.env.SMTP_USER,
     to,
-    subject: `${groupName} kör med ${app.name}! 🎉`,
+    subject: `${esc(groupName)} kör med ${esc(app.name)}! 🎉`,
     html,
   });
 }
