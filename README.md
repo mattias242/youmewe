@@ -47,6 +47,11 @@ SMTP_PORT=587
 SMTP_USER=<your-smtp-user>
 SMTP_PASS=<your-smtp-password>
 SMTP_FROM=YouMeWe <noreply@yourdomain.com>
+
+# Rate limits (requests per IP per hour, defaults shown)
+RATE_CREATE=10    # max sessions created
+RATE_JOIN=20      # max join attempts
+RATE_EMAIL=100    # max result emails sent
 ```
 
 ## API routes

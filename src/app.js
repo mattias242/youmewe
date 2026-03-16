@@ -13,9 +13,9 @@ const { participantAppsRouter } = require('./routes/participant-apps');
 const { resultsRouter } = require('./routes/results');
 const { sendResultRouter } = require('./routes/send-result');
 
-const createSession   = rateLimit({ windowMs: 60 * 60 * 1000, limit: 10,  message: { error: 'För många grupper skapade — försök igen om en timme.' } });
-const joinSession     = rateLimit({ windowMs: 60 * 60 * 1000, limit: 20,  message: { error: 'För många försök — försök igen om en timme.' } });
-const sendResultLimit = rateLimit({ windowMs: 60 * 60 * 1000, limit: 100, message: { error: 'För många mejlutskick — försök igen om en timme.' } });
+const createSession   = rateLimit({ windowMs: 60 * 60 * 1000, limit: Number(process.env.RATE_CREATE  ?? 10),  message: { error: 'För många grupper skapade — försök igen om en timme.' } });
+const joinSession     = rateLimit({ windowMs: 60 * 60 * 1000, limit: Number(process.env.RATE_JOIN    ?? 20),  message: { error: 'För många försök — försök igen om en timme.' } });
+const sendResultLimit = rateLimit({ windowMs: 60 * 60 * 1000, limit: Number(process.env.RATE_EMAIL   ?? 100), message: { error: 'För många mejlutskick — försök igen om en timme.' } });
 
 function createApp(db) {
   const app = express();
