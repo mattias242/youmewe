@@ -79,4 +79,44 @@ async function sendResultEmail({ to, name, groupName, app }) {
   });
 }
 
-module.exports = { sendResultEmail };
+async function sendBookingRequest({ name, phone, email, message, day }) {
+  if (!transport) {
+    console.warn('[mailer] SMTP ej konfigurerat — mejl skickas inte.');
+    return { skipped: true };
+  }
+  const to = process.env.BOOKING_TO;
+  if (!to) {
+    console.warn('[mailer] BOOKING_TO ej satt — bokningsmejl skickas inte.');
+    return { skipped: true };
+  }
+
+  const html = `
+<!DOCTYPE html>
+<html lang="sv">
+<head><meta charset="UTF-8" /></head>
+<body style="margin:0;padding:24px;background:#f4f6f9;font-family:system-ui,sans-serif;color:#14202e;">
+  <div style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #e1e7f0;border-radius:12px;padding:24px;">
+    <h2 style="margin:0 0 4px;font-size:18px;">Ny bokningsförfrågan</h2>
+    <p style="margin:0 0 18px;color:#5a677b;font-size:14px;">Önskad dag: <strong>${esc(day)}</strong></p>
+    <table style="border-collapse:collapse;font-size:14px;">
+      <tr><td style="padding:4px 14px 4px 0;color:#5a677b;">Namn</td><td>${esc(name)}</td></tr>
+      <tr><td style="padding:4px 14px 4px 0;color:#5a677b;">Telefon</td><td>${esc(phone)}</td></tr>
+      <tr><td style="padding:4px 14px 4px 0;color:#5a677b;">Mejl</td><td><a href="mailto:${esc(email)}">${esc(email)}</a></td></tr>
+    </table>
+    <p style="margin:18px 0 4px;color:#5a677b;font-size:14px;">Om mötet:</p>
+    <p style="margin:0;white-space:pre-wrap;font-size:14px;line-height:1.5;">${esc(message)}</p>
+  </div>
+  <p style="max-width:520px;margin:14px auto 0;color:#97a2b4;font-size:11px;">Skickat via bokningsformuläret.</p>
+</body>
+</html>`;
+
+  return transport.sendMail({
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    to,
+    replyTo: email,
+    subject: `Ny bokningsförfrågan – ${day} (${name})`,
+    html,
+  });
+}
+
+module.exports = { sendResultEmail, sendBookingRequest };
